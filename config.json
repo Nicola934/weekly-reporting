@@ -1,32 +1,34 @@
 {
-    "inbox_dir": "data/inbox",
-    "processed_dir": "data/processed",
-    "failed_dir": "data/failed",
-    "output_dir": "output",
-    "log_dir": "logs",
-
-    "input_globs": [".csv", "*.xlsx", "*.json"],
-
-    "report_basename": "weekly_report",
-    "write_cleaned_csv": true,
-    "write_kpi_json": true,
-
-        "column_map": {
-        "service_col": "Service_Category",
-        "region_col": "Region",
-        "satisfied_col": "Satisfied",
-        "recommend_col": "Recommend",
-        "date_col": "Response_Date",
-        "respondent_id_col": "Respondent_id"
-    },
-
-    "email": {
-        "enabled": true,
-        "smtp_host": "smtp.gmail.com",
-        "smtp_port": 587,
-        "use_starttls": true,
-        "from_addr": "NicolaMaluleke12@gmail.com",
-        "to_addrs": ["tianamaluks@gmail.com"],
-        "subject_prefix": "[Weekly Report]"
-    }
+  "inbox_dir": "data/inbox",
+  "processed_dir": "data/processed",
+  "failed_dir": "data/failed",
+  "output_dir": "output",
+  "log_dir": "logs",
+  "input_globs": [
+    "*.csv",
+    "*.xlsx",
+    "*.json"
+  ],
+  "report_basename": "weekly_report",
+  "write_cleaned_csv": true,
+  "write_kpi_json": true,
+  "column_map": {
+    "service_col": "Service_Category",
+    "region_col": "Region",
+    "satisfied_col": "Satisfied",
+    "recommend_col": "Recommend",
+    "date_col": "Response_Date",
+    "respondent_id_col": "Respondent_id"
+  },
+  "email": {
+    "enabled": false,
+    "smtp_host": "smtp.gmail.com",
+    "smtp_port": 587,
+    "use_starttls": true,
+    "from_addr": "sender@example.com",
+    "to_addrs": [
+      "recipient@example.com"
+    ],
+    "subject_prefix": "[Weekly Report]"
+  }
 }
