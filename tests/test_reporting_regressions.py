@@ -11,12 +11,13 @@ from unittest.mock import patch
 
 import pandas as pd
 
-from weekly_report.config import ColumnMap, EmailConfig
+from weekly_report.config import AppConfig, ColumnMap, EmailConfig
 from weekly_report.emailer import send_report_email
 from weekly_report.ingest import discover_inputs
 from weekly_report.kpis import compute_kpis, kpi_to_dict
 from weekly_report.processing import clean_df, dedupe_df
 from weekly_report.report import write_reports
+from weekly_report.pipeline import run_pipeline
 
 
 class ReportTests(unittest.TestCase):
@@ -84,6 +85,46 @@ class ReportTests(unittest.TestCase):
                 conn.starttls.assert_not_called()
                 conn.login.assert_called_once_with("example", "dummy")
                 conn.send_message.assert_called_once()
+
+    def test_full_synthetic_pipeline_without_email(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            cfg = AppConfig(
+                inbox_dir=root / "data" / "inbox",
+                processed_dir=root / "data" / "processed",
+                failed_dir=root / "data" / "failed",
+                output_dir=root / "output",
+                log_dir=root / "logs",
+                input_globs=["*.csv"],
+                report_basename="weekly_report",
+                write_cleaned_csv=True,
+                write_kpi_json=True,
+                column_map=self.cm,
+                email=EmailConfig(False, "smtp.example.com", 587, True,
+                                  "sender@example.com", ["recipient@example.com"], "Report"),
+            )
+            cfg.ensure_dirs()
+            pd.DataFrame([
+                {"Service_Category": " support ", "Region": "north",
+                 "Satisfied": "yes", "Recommend": "yes",
+                 "Response_Date": "2026-11-01", "Respondent_id": "1"},
+                {"Service_Category": "support", "Region": "north",
+                 "Satisfied": "yes", "Recommend": "yes",
+                 "Response_Date": "2026-11-01", "Respondent_id": "1"},
+                {"Service_Category": "sales", "Region": "south",
+                 "Satisfied": "no", "Recommend": "yes",
+                 "Response_Date": "2026-11-02", "Respondent_id": "2"},
+            ]).to_csv(cfg.inbox_dir / "sample.csv", index=False)
+            with patch("weekly_report.emailer.smtplib.SMTP") as smtp:
+                result = run_pipeline(cfg)
+                smtp.assert_not_called()
+            self.assertEqual(result["status"], "ok")
+            self.assertEqual(result["inputs_processed"], 1)
+            self.assertFalse((cfg.inbox_dir / "sample.csv").exists())
+            self.assertTrue((cfg.processed_dir / "sample.csv").is_file())
+            self.assertEqual(len(pd.read_csv(result["cleaned_csv"])), 2)
+            payload = json.loads(Path(result["kpi_json"]).read_text(encoding="utf-8"))
+            self.assertEqual(payload["total_responses"], 2)
 
 
 if __name__ == "__main__":
