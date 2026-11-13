@@ -74,17 +74,27 @@ class ReportTests(unittest.TestCase):
                 send_report_email(cfg, kpis, [], dry_run=True)
                 smtp.assert_not_called()
 
-    def test_smtp_without_starttls_still_authenticates_and_sends(self):
+    def test_smtp_without_starttls_is_rejected_before_connection(self):
         cfg = EmailConfig(True, "smtp.example.com", 587, False,
+                          "sender@example.com", ["recipient@example.com"], "Report")
+        kpis = compute_kpis(pd.DataFrame(), self.cm)
+        with patch("weekly_report.emailer.smtplib.SMTP") as smtp:
+            with self.assertRaisesRegex(ValueError, "requires STARTTLS"):
+                send_report_email(cfg, kpis, [], dry_run=False)
+            smtp.assert_not_called()
+
+    def test_smtp_starttls_authenticates_and_sends(self):
+        cfg = EmailConfig(True, "smtp.example.com", 587, True,
                           "sender@example.com", ["recipient@example.com"], "Report")
         kpis = compute_kpis(pd.DataFrame(), self.cm)
         with patch.dict("os.environ", {"REPORT_SMTP_USER": "example", "REPORT_SMTP_PASS": "dummy"}):
             with patch("weekly_report.emailer.smtplib.SMTP") as smtp:
                 conn = smtp.return_value.__enter__.return_value
                 send_report_email(cfg, kpis, [], dry_run=False)
-                conn.starttls.assert_not_called()
+                conn.starttls.assert_called_once()
                 conn.login.assert_called_once_with("example", "dummy")
                 conn.send_message.assert_called_once()
+
 
     def test_full_synthetic_pipeline_without_email(self):
         with tempfile.TemporaryDirectory() as temp_dir:
