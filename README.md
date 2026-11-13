@@ -39,7 +39,7 @@ Runtime folders are created automatically if missing.
 
 Requirements
 
-Python 3.10+ (tested with Python 3.14)
+Python 3.10+
 
 Windows (PowerShell examples shown)
 
@@ -73,7 +73,7 @@ input file patterns
 
 column names (service, region, satisfaction, recommendation, etc.)
 
-email settings (optional)
+email settings (disabled by default in the example; configure actual addresses locally)
 
 Input files must be placed in:
 
@@ -117,9 +117,9 @@ Logs: logs/app.log
 
 Health/status file: output/health.txt
 
-Both the log file and the health file update on every run.
+The health file is updated when processing begins or finishes; the log file records configured activity.
 
-Inputs are archived unchanged in data/processed/. Cleaned/deduped outputs are written to output/.
+On a normal run with inputs, originals are moved to data/processed/ and cleaned/deduplicated outputs are written to output/. Dry-run mode does not move originals or send email, but **does** generate local outputs and health/log files.
 
 Scheduling (Windows Task Scheduler)
 
@@ -151,6 +151,14 @@ Exit codes (automation-friendly)
 2 — pipeline failure
 
 3 — configuration error
+
+Email setup (optional)
+
+The public config.json uses placeholder addresses and has email disabled by default. To send real messages, set email.enabled to true, configure real addresses in a local config file, and provide REPORT_SMTP_USER and REPORT_SMTP_PASS environment variables. Never commit credentials or private client addresses. Use --config to select your local configuration. Dry-run does not require SMTP credentials and never connects to an SMTP server.
+
+Verification note
+
+The repository contains implementation for data ingestion, cleaning, KPI calculation, reports and optional SMTP delivery. Production operation and unattended scheduling should be validated in the intended environment; documentation is not a guarantee of deployment.
 
 Release & packaging
 
