@@ -154,7 +154,7 @@ Exit codes (automation-friendly)
 
 Email setup (optional)
 
-The public config.json uses placeholder addresses and has email disabled by default. To send real messages, set email.enabled to true, configure real addresses in a local config file, and provide REPORT_SMTP_USER and REPORT_SMTP_PASS environment variables. Never commit credentials or private client addresses. Use --config to select your local configuration. Dry-run does not require SMTP credentials and never connects to an SMTP server.
+The public config.json uses placeholder addresses and has email disabled by default. To send real messages, set email.enabled to true, configure real addresses in a local config file, keep email.use_starttls enabled, and provide REPORT_SMTP_USER and REPORT_SMTP_PASS environment variables. Plaintext SMTP authentication is not supported. Never commit credentials or private client addresses. Use --config to select your local configuration. Dry-run does not require SMTP credentials and never connects to an SMTP server.
 
 Verification note
 
