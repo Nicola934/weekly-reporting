@@ -23,7 +23,7 @@ class ReportArtifacts:
 
 
 def _stamp() -> str:
-    return datetime.now().strftime("%Y%m%d_ %H%M%S") # Returns a timestamp string formatted as "YYYYMMDD_HHMMSS"
+    return datetime.now().strftime("%Y%m%d_%H%M%S") # Returns a timestamp string formatted as "YYYYMMDD_HHMMSS"
 
 def write_reports(
     output_dir: Path, # Accepts a Path object representing the output directory

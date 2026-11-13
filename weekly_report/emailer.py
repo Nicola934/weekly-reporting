@@ -39,9 +39,6 @@ def send_report_email(
         logger.info("Email disabled in config. Skipping send.")
         return
 
-    smtp_user = _get_env("REPORT_SMTP_USER")
-    smtp_pass = _get_env("REPORT_SMTP_PASS")
-
     subject = f"{email_cfg.subject_prefix} Total={kpis.total_responses}"
     body_lines = [
         "Weekly Auto-Report",
@@ -71,15 +68,21 @@ def send_report_email(
         msg.add_attachment(data, maintype="application", subtype="octet-stream", filename=p.name)
         
     if dry_run:
-        logger.info("DRY RUN: Would send email to %s with %d attacment(s).", email_cfg.to_addrs, len(attachments))
+        logger.info("DRY RUN: Email would be prepared with %d attachment(s); no network connection.", len(attachments))
         return
+
+    if not email_cfg.use_starttls:
+        raise ValueError("SMTP delivery requires STARTTLS; plaintext authentication is not supported.")
+
+    smtp_user = _get_env("REPORT_SMTP_USER")
+    smtp_pass = _get_env("REPORT_SMTP_PASS")
 
     logger.info("Sending email to %s via %s:%s ...", email_cfg.to_addrs, email_cfg.smtp_host, email_cfg.smtp_port)
        
     with smtplib.SMTP(email_cfg.smtp_host, email_cfg.smtp_port, timeout=20) as server:
         if email_cfg.use_starttls:
             server.starttls()
-            server.login(smtp_user, smtp_pass)
-            server.send_message(msg)
-        
-        logger.info("Email sent.")
+        server.login(smtp_user, smtp_pass)
+        server.send_message(msg)
+
+    logger.info("Email sent.")
