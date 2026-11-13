@@ -71,6 +71,9 @@ def send_report_email(
         logger.info("DRY RUN: Email would be prepared with %d attachment(s); no network connection.", len(attachments))
         return
 
+    if not email_cfg.use_starttls:
+        raise ValueError("SMTP delivery requires STARTTLS; plaintext authentication is not supported.")
+
     smtp_user = _get_env("REPORT_SMTP_USER")
     smtp_pass = _get_env("REPORT_SMTP_PASS")
 
